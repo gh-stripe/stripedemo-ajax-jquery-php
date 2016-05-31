@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Ajax Stripe</title>
+
+  <!-- These styles are for demo purpose can be put in an external stylesheet
+  or completely removed -->
+  <style media="screen" type="text/css">
+  html{
+    background-color: #e8ebef;
+  }
+  #payment-container{
+    width: 600px;
+    margin-left:auto;
+    margin-right:auto;
+    border: 1px solid #d9dce3;
+    box-shadow: 0 0 1px 1px rgba(80,84,92,.1),0 1px 2px rgba(80,84,92,.5);
+    border-radius: 5px;
+    background: #ffffff;
+    color: #444;
+    font-family: proxima-nova, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  #payment-title{
+    font-size: 1.5em;
+    font-weight: 500;
+    padding: 10px;
+  }
+  #payment-button{
+    margin: 10px;
+    padding: 10px;
+    font-size: 15px;
+  }
+  #ajax-response{
+    border-top: 1px solid #d9dce3;
+    margin-top: 40px;
+    margin-bottom: 0px;
+    padding: 10px;
+    color: #6c767f;
+    background: #fafbfc;
+  }
+  </style>
+
+</head>
+
+<body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://checkout.stripe.com/checkout.js"></script>
+
+<div id=payment-container>
+
+  <p id="payment-title">Welcome to your awesome ajax payment page</p>
+
+  <button id="payment-button">Purchase</button>
+
+  <p id="ajax-response">Placeholder for the ajax response</p>
+
+</div>
+
+<script>
+  var handler = StripeCheckout.configure({
+    // Put you publishable API key here. I can be found at https://dashboard.stripe.com/account/apikeys
+    key: 'pk_test_xxxyyyzzz',
+    image: 'https://stripe.com/img/documentation/checkout/marketplace.png',
+    locale: 'auto',
+    token: function(token) {
+      $.ajax({
+        method: 'POST',
+        // Put the path of your server side script here
+        url: 'ajax.php',
+        data: { stripeToken: token.id, stripeEmail: token.email }
+      })
+        .done(function( msg ) {
+          $('#ajax-response').html(msg);
+        })
+        .fail(function( jqXHR, textStatus ) {
+          $('ajax-response').html('Something went wrong with the Ajax Call:' + textStatus);
+        })
+      }
+  });
+
+  $('#payment-button').on('click', function(e) {
+    // Open Checkout with further options:
+    handler.open({
+      name: 'Stripe.com',
+      description: '2 widgets',
+      amount: 2000
+    });
+    e.preventDefault();
+  });
+
+  // Close Checkout on page navigation:
+  $(window).on('popstate', function() {
+    handler.close();
+  });
+</script>
+
+</body>
+</html>
